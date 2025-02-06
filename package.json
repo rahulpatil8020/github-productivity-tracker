@@ -1,0 +1,48 @@
+{
+  "name": "github-productivity-tracker",
+  "displayName": "Github Productivity Tracker",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.89.1"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:github-productivity-tracker.helloWorld",
+    "onCommand:github-productivity-tracker.start"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "github-productivity-tracker.helloWorld",
+        "title": "Hello World"
+      },
+      {
+        "command": "github-productivity-tracker.start",
+        "title": "Start Tracking"
+      }
+    ]
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.89.1",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "eslint": "^9.19.0"
+  },
+  "dependencies": {
+    "child-process": "^1.0.2",
+    "fs-extra": "^11.3.0",
+    "ollama": "^0.5.12",
+    "simple-git": "^3.27.0"
+  }
+}
