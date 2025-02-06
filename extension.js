@@ -28,7 +28,7 @@ function activate(context) {
     "github-productivity-tracker.createGithubRepo",
     async () => {
       try {
-        await createAndPublishGitHubRepo("code-tracker-1");
+        await createAndPublishGitHubRepo(REPO_NAME);
       } catch (err) {
         vscode.window.showErrorMessage("Error: " + err.message);
       }
@@ -66,6 +66,7 @@ async function createAndPublishGitHubRepo(repoName) {
     vscode.window.showInformationMessage("Creating GitHub Repository...");
     // Check if GitHub CLI is authenticated
     execSync("gh auth status", { stdio: "ignore" });
+
     // Check if repo already exists
     const existingRepos = execSync("gh repo list --json name").toString();
     if (existingRepos.includes(repoName)) {
@@ -91,8 +92,6 @@ async function createAndPublishGitHubRepo(repoName) {
     execSync(`gh repo create ${repoName} --private --confirm`);
     console.log(`GitHub repository '${repoName}' created.`);
 
-    // Set up local repo path
-    // const repoPath = path.join(require("os").homedir(), repoName);
     if (!fs.existsSync(repoPath)) {
       fs.mkdirSync(repoPath);
     }
@@ -108,6 +107,7 @@ async function createAndPublishGitHubRepo(repoName) {
       "README.md",
       `# ${repoName}\n\nInitialized by Code Tracker`
     );
+
     execSync("git add README.md");
     execSync('git commit -m "Initial commit"');
     execSync("git branch -M main");
@@ -117,7 +117,7 @@ async function createAndPublishGitHubRepo(repoName) {
   } catch (error) {
     console.error("Error:", error.message);
     console.error(
-      "Ensure GitHub CLI is installed and authenticated (`gh auth login`)."
+      "Ensure GitHub CLI is installed and authenticated (`gh auth login`). Follow the instructions given on extension download page."
     );
     vscode.window.showErrorMessage("Error: " + error.message);
   }
