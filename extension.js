@@ -27,10 +27,8 @@ function activate(context) {
   let createRepoCmd = vscode.commands.registerCommand(
     "github-productivity-tracker.createGithubRepo",
     async () => {
-      vscode.window.showInformationMessage("Creating GitHub Repository...");
       try {
-        await createAndPublishGitHubRepo("code-tracker");
-        vscode.window.showInformationMessage("GitHub Repository Created!");
+        await createAndPublishGitHubRepo("code-tracker-1");
       } catch (err) {
         vscode.window.showErrorMessage("Error: " + err.message);
       }
@@ -61,13 +59,31 @@ function activate(context) {
 
 async function createAndPublishGitHubRepo(repoName) {
   try {
+    const userName = execSync("gh api user -q .login").toString().trim();
+    const repoUrl = `https://github.com/${userName}/${repoName}.git`;
+    const repoPath = path.join(require("os").homedir(), repoName);
+
+    vscode.window.showInformationMessage("Creating GitHub Repository...");
     // Check if GitHub CLI is authenticated
     execSync("gh auth status", { stdio: "ignore" });
-
     // Check if repo already exists
     const existingRepos = execSync("gh repo list --json name").toString();
     if (existingRepos.includes(repoName)) {
       console.log(`Repository '${repoName}' already exists.`);
+      vscode.window.showInformationMessage(
+        "Repository already exists. Pulling latest changes..."
+      );
+
+      // If local repo does not exist, clone it
+      if (!fs.existsSync(repoPath)) {
+        execSync(`git clone ${repoUrl} ${repoPath}`);
+        console.log("Repository cloned successfully.");
+      } else {
+        // If local repo exists, pull latest changes
+        process.chdir(repoPath);
+        execSync("git pull origin main");
+        console.log("Pulled latest changes.");
+      }
       return;
     }
 
@@ -76,7 +92,7 @@ async function createAndPublishGitHubRepo(repoName) {
     console.log(`GitHub repository '${repoName}' created.`);
 
     // Set up local repo path
-    const repoPath = path.join(require("os").homedir(), repoName);
+    // const repoPath = path.join(require("os").homedir(), repoName);
     if (!fs.existsSync(repoPath)) {
       fs.mkdirSync(repoPath);
     }
@@ -88,7 +104,6 @@ async function createAndPublishGitHubRepo(repoName) {
     execSync(
       `git remote add origin https://github.com/$(gh api user -q .login)/${repoName}.git`
     );
-    vscode.window.showInformationMessage("Added Remote Repo");
     fs.writeFileSync(
       "README.md",
       `# ${repoName}\n\nInitialized by Code Tracker`
@@ -97,13 +112,14 @@ async function createAndPublishGitHubRepo(repoName) {
     execSync('git commit -m "Initial commit"');
     execSync("git branch -M main");
     execSync("git push -u origin main");
-
     console.log(`Repository '${repoName}' successfully pushed to GitHub.`);
+    vscode.window.showInformationMessage("GitHub Repository Created!");
   } catch (error) {
     console.error("Error:", error.message);
     console.error(
       "Ensure GitHub CLI is installed and authenticated (`gh auth login`)."
     );
+    vscode.window.showErrorMessage("Error: " + error.message);
   }
 }
 
