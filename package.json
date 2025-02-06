@@ -10,19 +10,24 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:github-productivity-tracker.helloWorld",
-    "onCommand:github-productivity-tracker.start"
+    "onCommand:github-productivity-tracker.createGithubRepo",
+    "onCommand:github-productivity-tracker.startTracking",
+    "onCommand:github-productivity-tracker.stopTracking"
   ],
   "main": "./extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "github-productivity-tracker.helloWorld",
-        "title": "Hello World"
+        "command": "github-productivity-tracker.createGithubRepo",
+        "title": "Create GitHub Repository"
       },
       {
-        "command": "github-productivity-tracker.start",
+        "command": "github-productivity-tracker.startTracking",
         "title": "Start Tracking"
+      },
+      {
+        "command": "github-productivity-tracker.stopTracking",
+        "title": "Stop Tracking"
       }
     ]
   },

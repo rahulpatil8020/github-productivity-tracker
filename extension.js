@@ -21,26 +21,42 @@ let repoPath = `${require("os").homedir()}/${REPO_NAME}`;
 let git = simpleGit(options);
 
 function activate(context) {
-  console.log(
-    'Congratulations, your extension "github-productivity-tracker" is now active!'
-  );
-  const disposable = vscode.commands.registerCommand(
-    "github-productivity-tracker.start",
+  console.log('Extension "github-productivity-tracker" is now active!');
+
+  // Command to create GitHub repo
+  let createRepoCmd = vscode.commands.registerCommand(
+    "github-productivity-tracker.createGithubRepo",
     async () => {
-      vscode.window.showInformationMessage("Started Tracking");
+      vscode.window.showInformationMessage("Creating GitHub Repository...");
       try {
         await createAndPublishGitHubRepo("code-tracker");
-        // await setupLocalRepo();
-        // startTracking();
+        vscode.window.showInformationMessage("GitHub Repository Created!");
       } catch (err) {
-        vscode.window.showErrorMessage(
-          "Error initializing Code Tracker: " + err.message
-        );
+        vscode.window.showErrorMessage("Error: " + err.message);
       }
     }
   );
 
-  context.subscriptions.push(disposable);
+  // Command to start tracking
+  let startTrackingCmd = vscode.commands.registerCommand(
+    "github-productivity-tracker.startTracking",
+    async () => {
+      vscode.window.showInformationMessage("Started Tracking Code Changes");
+      startTracking();
+    }
+  );
+
+  // Command to stop tracking
+  let stopTrackingCmd = vscode.commands.registerCommand(
+    "github-productivity-tracker.stopTracking",
+    () => {
+      vscode.window.showInformationMessage("Stopped Tracking Code Changes");
+      // stopTracking();
+    }
+  );
+
+  // Register all commands
+  context.subscriptions.push(createRepoCmd, startTrackingCmd, stopTrackingCmd);
 }
 
 async function createAndPublishGitHubRepo(repoName) {
