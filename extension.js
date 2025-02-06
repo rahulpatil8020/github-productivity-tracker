@@ -68,9 +68,11 @@ async function createAndPublishGitHubRepo(repoName) {
 
     // Initialize Git, add remote origin, create a README
     execSync("git init");
+    vscode.window.showInformationMessage("Created Local Repo");
     execSync(
       `git remote add origin https://github.com/$(gh api user -q .login)/${repoName}.git`
     );
+    vscode.window.showInformationMessage("Added Remote Repo");
     fs.writeFileSync(
       "README.md",
       `# ${repoName}\n\nInitialized by Code Tracker`
