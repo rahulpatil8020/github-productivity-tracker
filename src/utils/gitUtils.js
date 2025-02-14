@@ -10,7 +10,7 @@ const options = {
 
 const REPO_NAME = "code-tracker";
 const FILE_NAME = "progress-summary.md";
-const CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes
+const CHECK_INTERVAL = 60 * 60 * 1000; // 30 minutes
 let repoPath = `${os.homedir()}/${REPO_NAME}`;
 let git = simpleGit(options);
 
