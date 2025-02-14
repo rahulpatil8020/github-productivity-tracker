@@ -1,166 +1,142 @@
 const vscode = require("vscode");
-const fs = require("fs-extra");
-const { simpleGit } = require("simple-git");
-const { execSync } = require("child_process");
-const ollama = require("ollama");
-const path = require("path");
+const { createAndPublishGitHubRepo } = require("./src/commands/createRepo");
+const { startTracking } = require("./src/commands/startTracking");
+
 /**
  * @param {vscode.ExtensionContext} context
  */
-const options = {
-  baseDir: process.cwd(),
-  binary: "git",
-  maxConcurrentProcesses: 6,
-  trimmed: false,
-};
-
-const REPO_NAME = "code-tracker";
-const FILE_NAME = "progress-summary.txt";
-const CHECK_INTERVAL = 30 * 60 * 1000; // 30 minutes
-let repoPath = `${require("os").homedir()}/${REPO_NAME}`;
-let git = simpleGit(options);
-
 function activate(context) {
   console.log('Extension "github-productivity-tracker" is now active!');
 
-  // Command to create GitHub repo
   let createRepoCmd = vscode.commands.registerCommand(
     "github-productivity-tracker.createGithubRepo",
-    async () => {
-      try {
-        await createAndPublishGitHubRepo(REPO_NAME);
-      } catch (err) {
-        vscode.window.showErrorMessage("Error: " + err.message);
-      }
-    }
+    createAndPublishGitHubRepo
   );
 
-  // Command to start tracking
   let startTrackingCmd = vscode.commands.registerCommand(
     "github-productivity-tracker.startTracking",
-    async () => {
-      vscode.window.showInformationMessage("Started Tracking Code Changes");
-      startTracking();
-    }
+    startTracking
   );
 
-  // Command to stop tracking
-  let stopTrackingCmd = vscode.commands.registerCommand(
-    "github-productivity-tracker.stopTracking",
-    () => {
-      vscode.window.showInformationMessage("Stopped Tracking Code Changes");
-      // stopTracking();
-    }
-  );
+  // let stopTrackingCmd = vscode.commands.registerCommand(
+  //   "github-productivity-tracker.stopTracking",
+  //   stopTracking
+  // );
 
-  // Register all commands
-  context.subscriptions.push(createRepoCmd, startTrackingCmd, stopTrackingCmd);
+  context.subscriptions.push(createRepoCmd, startTrackingCmd);
 }
 
-async function createAndPublishGitHubRepo(repoName) {
-  try {
-    const userName = execSync("gh api user -q .login").toString().trim();
-    const repoUrl = `https://github.com/${userName}/${repoName}.git`;
-    const repoPath = path.join(require("os").homedir(), repoName);
+function deactivate() {}
 
-    vscode.window.showInformationMessage("Creating GitHub Repository...");
-    // Check if GitHub CLI is authenticated
-    execSync("gh auth status", { stdio: "ignore" });
+module.exports = {
+  activate,
+  deactivate,
+};
 
-    // Check if repo already exists
-    const existingRepos = execSync("gh repo list --json name").toString();
-    if (existingRepos.includes(repoName)) {
-      console.log(`Repository '${repoName}' already exists.`);
-      vscode.window.showInformationMessage(
-        "Repository already exists. Pulling latest changes..."
-      );
+// async function createAndPublishGitHubRepo(repoName, repoPath) {
+//   try {
+//     const userName = execSync("gh api user -q .login").toString().trim();
+//     const repoUrl = `https://github.com/${userName}/${repoName}.git`;
+//     const repoPath = path.join(require("os").homedir(), repoName);
 
-      // If local repo does not exist, clone it
-      if (!fs.existsSync(repoPath)) {
-        execSync(`git clone ${repoUrl} ${repoPath}`);
-        console.log("Repository cloned successfully.");
-      } else {
-        // If local repo exists, pull latest changes
-        process.chdir(repoPath);
-        execSync("git pull origin main");
-        console.log("Pulled latest changes.");
-      }
-      return;
-    }
+//     vscode.window.showInformationMessage("Creating GitHub Repository...");
+//     // Check if GitHub CLI is authenticated
+//     execSync("gh auth status", { stdio: "ignore" });
 
-    // Create the repository on GitHub
-    execSync(`gh repo create ${repoName} --private --confirm`);
-    console.log(`GitHub repository '${repoName}' created.`);
+//     // Check if repo already exists
+//     const existingRepos = execSync("gh repo list --json name").toString();
+//     if (existingRepos.includes(repoName)) {
+//       console.log(`Repository '${repoName}' already exists.`);
+//       vscode.window.showInformationMessage(
+//         "Repository already exists. Pulling latest changes..."
+//       );
 
-    if (!fs.existsSync(repoPath)) {
-      fs.mkdirSync(repoPath);
-    }
-    process.chdir(repoPath);
+//       // If local repo does not exist, clone it
+//       if (!fs.existsSync(repoPath)) {
+//         execSync(`git clone ${repoUrl} ${repoPath}`);
+//         console.log("Repository cloned successfully.");
+//       } else {
+//         // If local repo exists, pull latest changes
+//         process.chdir(repoPath);
+//         execSync("git pull origin main");
+//         console.log("Pulled latest changes.");
+//       }
+//       return;
+//     }
 
-    // Initialize Git, add remote origin, create a README
-    execSync("git init");
-    vscode.window.showInformationMessage("Created Local Repo");
-    execSync(
-      `git remote add origin https://github.com/$(gh api user -q .login)/${repoName}.git`
-    );
-    fs.writeFileSync(
-      "README.md",
-      `# ${repoName}\n\nInitialized by Code Tracker`
-    );
+//     // Create the repository on GitHub
+//     execSync(`gh repo create ${repoName} --private --confirm`);
+//     console.log(`GitHub repository '${repoName}' created.`);
 
-    execSync("git add README.md");
-    execSync('git commit -m "Initial commit"');
-    execSync("git branch -M main");
-    execSync("git push -u origin main");
-    console.log(`Repository '${repoName}' successfully pushed to GitHub.`);
-    vscode.window.showInformationMessage("GitHub Repository Created!");
-  } catch (error) {
-    console.error("Error:", error.message);
-    console.error(
-      "Ensure GitHub CLI is installed and authenticated (`gh auth login`). Follow the instructions given on extension download page."
-    );
-    vscode.window.showErrorMessage("Error: " + error.message);
-  }
-}
+//     if (!fs.existsSync(repoPath)) {
+//       fs.mkdirSync(repoPath);
+//     }
+//     process.chdir(repoPath);
 
-async function setupLocalRepo() {
-  if (!fs.existsSync(repoPath)) {
-    fs.mkdirSync(repoPath);
-    git = simpleGit(repoPath);
-    await git.init();
-    await git.addRemote(
-      "origin",
-      `https://github.com/rahulpatil8020/${REPO_NAME}.git`
-    );
-    fs.writeFileSync(`${repoPath}/.gitignore`, "node_modules/\n.vscode/\n");
-    await git.add([".gitignore"]);
-    await git.commit("Initial commit");
-    await git.push("origin", "main");
-  }
-}
+//     // Initialize Git, add remote origin, create a README
+//     execSync("git init");
+//     vscode.window.showInformationMessage("Created Local Repo");
+//     execSync(
+//       `git remote add origin https://github.com/$(gh api user -q .login)/${repoName}.git`
+//     );
+//     fs.writeFileSync(
+//       "README.md",
+//       `# ${repoName}\n\nInitialized by Code Tracker`
+//     );
 
-async function startTracking() {
-  setInterval(async () => {
-    try {
-      let diff = execSync("git diff").toString();
-      if (!diff) return; // Skip if no changes
+//     execSync("git add README.md");
+//     execSync('git commit -m "Initial commit"');
+//     execSync("git branch -M main");
+//     execSync("git push -u origin main");
+//     console.log(`Repository '${repoName}' successfully pushed to GitHub.`);
+//     vscode.window.showInformationMessage("GitHub Repository Created!");
+//   } catch (error) {
+//     console.error("Error:", error.message);
+//     console.error(
+//       "Ensure GitHub CLI is installed and authenticated (`gh auth login`). Follow the instructions given on extension download page."
+//     );
+//     vscode.window.showErrorMessage("Error: " + error.message);
+//   }
+// }
 
-      let summary = "Summary:\n" + diff;
-      //   await summarizeChanges(diff);
-      fs.writeFileSync(`${repoPath}/${FILE_NAME}`, summary);
+// async function setupLocalRepo() {
+//   if (!fs.existsSync(repoPath)) {
+//     fs.mkdirSync(repoPath);
+//     git = simpleGit(repoPath);
+//     await git.init();
+//     await git.addRemote(
+//       "origin",
+//       `https://github.com/rahulpatil8020/${REPO_NAME}.git`
+//     );
+//     fs.writeFileSync(`${repoPath}/.gitignore`, "node_modules/\n.vscode/\n");
+//     await git.add([".gitignore"]);
+//     await git.commit("Initial commit");
+//     await git.push("origin", "main");
+//   }
+// }
 
-      await git.add([FILE_NAME]);
-      await git.commit(`Update summary - ${new Date().toISOString()}`);
-      await git.push("origin", "main");
+// async function startTracking() {
+//   setInterval(async () => {
+//     try {
+//       let diff = execSync("git diff").toString();
+//       if (!diff) return; // Skip if no changes
 
-      vscode.window.showInformationMessage("Code changes committed.");
-    } catch (error) {
-      vscode.window.showErrorMessage(
-        "Error committing changes: " + error.message
-      );
-    }
-  }, CHECK_INTERVAL);
-}
+//       let summary = "Summary:\n" + diff;
+//       //   await summarizeChanges(diff);
+//       fs.writeFileSync(`${repoPath}/${FILE_NAME}`, summary);
+
+//       await git.add([FILE_NAME]);
+//       await git.commit(`Update summary - ${new Date().toISOString()}`);
+//       await git.push("origin", "main");
+
+//       vscode.window.showInformationMessage("Code changes committed.");
+//     } catch (error) {
+//       vscode.window.showErrorMessage(
+//         "Error committing changes: " + error.message
+//       );
+//     }
+//   }, CHECK_INTERVAL);
+// }
 
 // async function summarizeChanges(diff) {
 //   let response = await ollama.chat({
@@ -171,9 +147,3 @@ async function startTracking() {
 // }
 
 // This method is called when your extension is deactivated
-function deactivate() {}
-
-module.exports = {
-  activate,
-  deactivate,
-};
