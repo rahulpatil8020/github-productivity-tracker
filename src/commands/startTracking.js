@@ -47,42 +47,13 @@ async function startTracking() {
 }
 
 async function summarizeDiff(diff) {
-  const apiKey = process.env.GOOGLE_API_KEY;
-  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
-  // const prompt = `You are a code assistant. Summarize the following git diff into a short, clear summary, highlighting key changes in code structure, logic, and functionality. Omit minor details. Here is the diff:\n${diff}`;
-  const requestBody = {
-    contents: [
-      {
-        parts: [
-          {
-            text: "You are a code assistant. Summarize the following git diff into a short, clear summary, highlighting key changes in code structure, logic, and functionality. Omit minor details.",
-          },
-          { text: diff },
-        ],
-      },
-    ],
-  };
   try {
-    const response = await axios.post(apiUrl, requestBody, {
-      headers: {
-        "Content-Type": "application/json",
-      },
+    const response = await axios.post("http://localhost:8000/summarize", {
+      diff,
     });
+    const summary = response.data.summary;
 
-    if (
-      response.data &&
-      response.data.candidates &&
-      response.data.candidates[0].content &&
-      response.data.candidates[0].content.parts
-    ) {
-      const summary = response.data.candidates[0].content.parts
-        .map((part) => part.text)
-        .join("");
-      return summary;
-    } else {
-      throw new Error("No summary returned from Gemini API.");
-    }
+    return summary;
   } catch (error) {
     console.error("Error generating summary:", error.message);
     return "Summary generation failed.";
