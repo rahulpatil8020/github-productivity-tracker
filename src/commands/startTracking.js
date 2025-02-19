@@ -18,37 +18,36 @@ async function startTracking() {
     vscode.window.showErrorMessage("No workspace is opened.");
     return;
   }
-  const newFileName = `${FILE_NAME}-${new Date().toISOString()}`;
 
-  // setInterval(async () => {
-  try {
-    // Run git diff in the current open directory
-    execSync("git rev-parse --is-inside-work-tree", { cwd: workspacePath });
-    let diff = execSync("git diff", { cwd: workspacePath }).toString();
-    if (!diff.trim()) return; // Exit if no changes
+  setInterval(async () => {
+    try {
+      // Run git diff in the current open directory
+      execSync("git rev-parse --is-inside-work-tree", { cwd: workspacePath });
+      let diff = execSync("git diff", { cwd: workspacePath }).toString();
+      if (!diff.trim()) return; // Exit if no changes
 
-    // Create the summary file in repoPath
-    const summary = await summarizeDiff(diff);
-    fs.writeFileSync(`${repoPath}/${newFileName}`, summary);
+      // Create the summary file in repoPath
+      const summary = await summarizeDiff(diff);
+      fs.writeFileSync(`${repoPath}/${FILE_NAME}`, summary);
 
-    // Perform git operations in repoPath
-    await git.cwd(repoPath);
-    await git.add([`${repoPath}/${newFileName}`]);
-    await git.commit(`Update summary - ${new Date().toISOString()}`);
-    await git.push("origin", "main");
+      // Perform git operations in repoPath
+      await git.cwd(repoPath);
+      await git.add([`${repoPath}/${FILE_NAME}`]);
+      await git.commit(`Update summary - ${new Date().toISOString()}`);
+      await git.push("origin", "main");
 
-    vscode.window.showInformationMessage("Code changes committed.");
-  } catch (error) {
-    vscode.window.showErrorMessage(
-      "Error committing changes: " + error.message
-    );
-  }
-  // }, 10000);
+      vscode.window.showInformationMessage("Code changes committed.");
+    } catch (error) {
+      vscode.window.showErrorMessage(
+        "Error committing changes: " + error.message
+      );
+    }
+  }, CHECK_INTERVAL);
 }
 
 async function summarizeDiff(diff) {
   try {
-    const response = await axios.post("http://localhost:8000/summarize", {
+    const response = await axios.post("http://3.21.158.116:8000/summarize", {
       diff,
     });
     const summary = response.data.summary;
