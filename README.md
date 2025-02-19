@@ -1,65 +1,80 @@
-# github-productivity-tracker README
+# **Code Tracker - VS Code Extension**
 
-This is the README for your extension "github-productivity-tracker". After writing up a brief description, we recommend including the following sections.
+🚀 **Automatically track your coding activity and commit progress summaries to GitHub.**
 
-## Features
+## **Overview**
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+Code Tracker is a VS Code extension that monitors your coding activity and automatically commits summarized changes to a GitHub repository every 30 minutes. The extension uses Google's Gemini AI to generate commit summaries based on `git diff`, ensuring concise and meaningful documentation of your progress.
 
-For example if there is an image subfolder under your extension project workspace:
+## **Features**
 
-\!\[feature X\]\(images/feature-x.png\)
+✅ **Automatic Commit Tracking** – Captures your code changes every 30 minutes.  
+✅ **AI-Powered Summaries** – Uses Google's Gemini API to summarize changes.  
+✅ **GitHub Integration** – Automatically creates a `code-tracker` repository if it doesn’t exist.  
+✅ **Secure Communication** – Data is sent over **HTTPS** using an AWS-hosted Node.js server.  
+✅ **Minimal Setup** – Works seamlessly without manual intervention.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## **Installation**
 
-## Requirements
+### **1. Install from VS Code Marketplace**
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+(Once published, provide a link here)
 
-## Extension Settings
+### **2. Manual Installation**
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+1. Download the `.vsix` package (if available).
+2. In VS Code, go to `Extensions` → Click `⋮` → `Install from VSIX...`.
+3. Select the downloaded file and install.
 
-For example:
+## **How It Works**
 
-This extension contributes the following settings:
+1. The extension **monitors file changes** in your workspace.
+2. Every **30 minutes**, it:
+   - Runs `git diff` to detect changes.
+   - Sends the diff to **Google Gemini API** for summarization.
+   - Commits and pushes the summary to a **private GitHub repository** called `code-tracker`.
+3. The filename format for logs follows: Month Day Year.md (e.g., Feb 14th 2025.md)
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+## **Configuration**
 
-## Known Issues
+### **1. Set Up Your GitHub Token**
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+To authenticate GitHub API requests, store your **GitHub Personal Access Token** in VS Code settings:
 
-## Release Notes
+1. Open **Settings** (`Ctrl + ,`).
+2. Search for `"codeTracker.githubToken"` and enter your token.
 
-Users appreciate release notes as you update your extension.
+### **2. API Key for Summarization**
 
-### 1.0.0
+1. Go to **Google Cloud Console** → Get an API key for **Gemini AI**.
+2. Store it in VS Code settings under `"codeTracker.geminiApiKey"`.
 
-Initial release of ...
+## **Backend Server (AWS Deployment)**
 
-### 1.0.1
+Your extension communicates with a **Node.js server hosted on AWS**, secured via **HTTPS** using AWS ACM & Elastic Load Balancer.
 
-Fixed issue #.
+### **Deploying Your Own Server (Optional)**
 
-### 1.1.0
+If you want to self-host:
 
-Added features X, Y, and Z.
+1. Clone the backend repository.
+2. Deploy it on **AWS EC2**.
+3. Secure it using **AWS ACM & ELB** (HTTPS).
+4. Update the server endpoint in the extension settings.
 
----
+## **Security**
 
-## Working with Markdown
+✅ **Uses HTTPS** to prevent data interception.  
+✅ **Stores API keys securely** in VS Code settings.  
+✅ **GitHub repository is private** by default.
 
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
+## **Contributing**
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
+Contributions are welcome! To contribute:
 
-## For more information
+1. Fork this repository.
+2. Create a new branch (`feature-branch`).
+3. Commit your changes.
+4. Submit a pull request.
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+## **License**

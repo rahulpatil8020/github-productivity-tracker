@@ -1,7 +1,7 @@
 {
   "name": "github-productivity-tracker",
   "displayName": "Github Productivity Tracker",
-  "publisher": "rahulpatil8020",
+  "publisher": "RahulPatilDevSapien",
   "description": "This extension allows you to track your code changes and productivity on GitHub.",
   "version": "0.0.1",
   "engines": {
